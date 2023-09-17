@@ -1,5 +1,6 @@
-import { Separator } from "@/components/ui/separator";
-import { TypographyH2 } from "@/components/ui/typography";
+import {
+  Tabs, TabList, TabTrigger, TabContent
+} from "@/components/ui/tabs";
 import { createServerSupabaseClient } from "@/lib/server-utils";
 import { redirect } from "next/navigation";
 import AddSpeciesDialog from "./add-species-dialog";
@@ -21,13 +22,27 @@ export default async function SpeciesList() {
 
   return (
     <>
-      <div className="mb-5 flex flex-wrap items-center justify-between gap-4">
-        <TypographyH2>Species List</TypographyH2>
-        <AddSpeciesDialog key={new Date().getTime()} userId={session.user.id} />
-      </div>
-      <Separator className="my-4" />
-      <div className="flex flex-wrap justify-center">
-        {species?.map((species) => <SpeciesCard key={species.id} {...species} />)}
+      <div>
+        <Tabs defaultValue="species">
+          <TabList aria-label="species tabs" className="flex justify-between">
+            <div className="flex justify-start gap-6">
+              <TabTrigger value="species"> Species List</TabTrigger>
+              <TabTrigger value="my-species">My Species</TabTrigger>
+            </div>
+            <div className="mb-2">
+              <AddSpeciesDialog key={new Date().getTime()} userId={session.user.id}/>
+            </div>
+          </TabList>
+          <TabContent value="species">
+            <div className="flex flex-wrap justify-center">
+              {species?.map((species) => <SpeciesCard key={species.id} {...species} />)}
+            </div>
+          </TabContent>
+          <TabContent value="my-species">
+            hello
+          </TabContent>
+        </Tabs>
+
       </div>
     </>
   );
