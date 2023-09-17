@@ -35,11 +35,13 @@ export default async function SpeciesList() {
           </TabList>
           <TabContent value="species">
             <div className="flex flex-wrap justify-center">
-              {species?.map((species) => <SpeciesCard key={species.id} {...species} />)}
+              {species?.map((species) => <SpeciesCard key={species.id} species={species} userId={session.user.id}/>)}
             </div>
           </TabContent>
           <TabContent value="my-species">
-            hello
+            <div className="flex flex-wrap justify-center">
+              {species?.filter(species => species.author === session.user.id).map((species) => <SpeciesCard key={species.id} species={species} userId={session.user.id} />)}
+            </div>
           </TabContent>
         </Tabs>
 

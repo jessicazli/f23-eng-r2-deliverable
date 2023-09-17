@@ -14,7 +14,7 @@ const TabList = React.forwardRef<
   <TabsPrimitive.List
     ref={ref}
     className={cn(
-      "shrink-0 flex border-b",
+      "shrink-0 flex border-b mb-4",
       className,
     )}
     {...props}

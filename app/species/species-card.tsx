@@ -1,5 +1,6 @@
 "use client";
 
+import { Icons } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -14,11 +15,20 @@ import Image from "next/image";
 import { useState } from "react";
 type Species = Database["public"]["Tables"]["species"]["Row"];
 
-export default function SpeciesCard(species: Species) {
+export default function SpeciesCard({ species, userId }: { species: Species, userId: string }) {
   const [open, setOpen] = useState<boolean>(false);
+
   return (
     <div className="min-w-72 m-4 w-72 flex-none rounded border-2 p-3 shadow flex flex-col">
-      <h3 className="text-2xl font-semibold">{species.common_name}</h3>
+      {userId === species.author ?
+        <div className="flex items-center justify-between">
+          <h3 className="text-2xl font-semibold">{species.common_name}</h3>
+          <div className="flex justify-end gap-2 text-gray-500">
+            <Icons.pencil className="h-5 w-5 hover:text-black" />
+            <Icons.trash className="h-5 w-5 hover:text-red-600" />
+          </div>
+        </div>
+        : <h3 className="text-2xl font-semibold">{species.common_name}</h3>}
       <h4 className="text-lg font-light italic">{species.scientific_name}</h4>
       {species.image && (
         <div className="relative h-40 w-full my-4">
