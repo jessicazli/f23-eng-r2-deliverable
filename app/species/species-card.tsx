@@ -24,7 +24,7 @@ export default function SpeciesCard({ species, userId }: { species: Species, use
         <div className="flex items-center justify-between">
           <h3 className="text-2xl font-semibold">{species.common_name}</h3>
           <div className="flex justify-end gap-2 text-gray-500">
-            <Icons.pencil className="h-5 w-5 hover:text-black" />
+            <Icons.pencil className="h-5 w-5 hover:text-black"/>
             <Icons.trash className="h-5 w-5 hover:text-red-600" />
           </div>
         </div>
