@@ -21,9 +21,32 @@ export default function DeleteSpeciesDialog({ species }: { species: Species }) {
   const router = useRouter();
   const [open, setOpen] = useState<boolean>(false);
 
+  // bug: species is not being deleted from table
   const deleteSpecies = async () => {
     const supabase = createClientComponentClient<Database>();
-    const { error } = await supabase.from("species").delete().eq("id", species.id);
+
+    // this shows that species.id exists and is fetching the right data
+    const { data: fetchData, error: fetchError } = await supabase
+    .from('species')
+    .select('*')
+    .eq('id', species.id);
+    // eslint-disable-next-line no-console
+    console.log('Fetch data response:', { fetchData, fetchError });
+
+    // this should delete species
+    const { data, error, status } = await supabase.from("species").delete().eq("id", species.id);
+
+    // this shows null
+    // eslint-disable-next-line no-console
+    console.log(data);
+
+    // this shows null so there isn't an error
+    // eslint-disable-next-line no-console
+    console.log(error);
+
+    // status is 204 so theoretically deletion should have been successful
+    // eslint-disable-next-line no-console
+    console.log(status);
 
     if (error) {
       return toast({
@@ -32,6 +55,10 @@ export default function DeleteSpeciesDialog({ species }: { species: Species }) {
         variant: "destructive",
       });
     }
+
+    setOpen(false);
+
+    // page should refresh and reflect deletion but as stated above, deletion is not occurring
     router.refresh();
   };
 
