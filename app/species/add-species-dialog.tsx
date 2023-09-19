@@ -22,6 +22,7 @@ import { useRouter } from "next/navigation";
 import { useState, type BaseSyntheticEvent } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
+type Species = Database["public"]["Tables"]["species"]["Row"];
 
 // We use zod (z) to define a schema for the "Add species" form.
 // zod handles validation of the input values with methods like .string(), .nullable(). It also processes the form inputs with .transform() before the inputs are sent to the database.
@@ -58,30 +59,61 @@ const defaultValues: Partial<FormData> = {
   kingdom: "Animalia",
 };
 
-export default function AddSpeciesDialog({ userId }: { userId: string }) {
+export default function AddSpeciesDialog({
+  userId,
+  action,
+  species,
+}: {
+  userId: string;
+  action: "add" | "edit";
+  species?: Species;
+}) {
   const router = useRouter();
   const [open, setOpen] = useState<boolean>(false);
 
   const form = useForm<FormData>({
     resolver: zodResolver(speciesSchema),
-    defaultValues,
+    defaultValues:
+      action === "add"
+        ? defaultValues
+        : {
+            ...species,
+            total_population: species?.total_population ?? undefined,
+            image: species?.image ?? undefined,
+          },
     mode: "onChange",
   });
 
   const onSubmit = async (input: FormData) => {
     // The `input` prop contains data that has already been processed by zod. We can now use it in a supabase query
     const supabase = createClientComponentClient<Database>();
-    const { error } = await supabase.from("species").insert([
-      {
-        author: userId,
-        common_name: input.common_name,
-        description: input.description,
-        kingdom: input.kingdom,
-        scientific_name: input.scientific_name,
-        total_population: input.total_population,
-        image: input.image,
-      },
-    ]);
+    let error;
+
+    if (action === "add") {
+      ({ error } = await supabase.from("species").insert([
+        {
+          author: userId,
+          common_name: input.common_name,
+          description: input.description,
+          kingdom: input.kingdom,
+          scientific_name: input.scientific_name,
+          total_population: input.total_population,
+          image: input.image,
+        },
+      ]));
+    } else if (action === "edit" && species) {
+      ({ error } = await supabase
+        .from("species")
+        .update({
+          common_name: input.common_name,
+          description: input.description,
+          kingdom: input.kingdom,
+          scientific_name: input.scientific_name,
+          total_population: input.total_population,
+          image: input.image,
+        })
+        .eq("id", species.id));
+    }
 
     if (error) {
       return toast({
@@ -104,34 +136,27 @@ export default function AddSpeciesDialog({ userId }: { userId: string }) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="secondary" onClick={() => setOpen(true)}>
-          <Icons.add className="mr-3 h-5 w-5" />
-          Add Species
-        </Button>
+        {action === "add" ? (
+          <Button variant="secondary" onClick={() => setOpen(true)}>
+            <Icons.add className="mr-3 h-5 w-5" />
+            Add Species
+          </Button>
+        ) : (
+          <Icons.pencil role="button" className="h-5 w-5 text-gray-500 hover:text-black" onClick={() => setOpen(true)} />
+        )}
       </DialogTrigger>
       <DialogContent className="max-h-screen overflow-y-auto sm:max-w-[600px]">
         <DialogHeader>
-          <DialogTitle>Add Species</DialogTitle>
+          <DialogTitle>{action === "add" ? "Add Species" : "Edit Species"}</DialogTitle>
           <DialogDescription>
-            Add a new species here. Click &quot;Add Species&quot; below when you&apos;re done.
+            {action === "add"
+              ? "Add a new species here. Click 'Add Species' below when you're done."
+              : "Edit a new species here. Click 'Update Species' below when you're done."}
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={(e: BaseSyntheticEvent) => void form.handleSubmit(onSubmit)(e)}>
             <div className="grid w-full items-center gap-4">
-              <FormField
-                control={form.control}
-                name="scientific_name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Scientific Name</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Cavia porcellus" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
               <FormField
                 control={form.control}
                 name="common_name"
@@ -148,6 +173,19 @@ export default function AddSpeciesDialog({ userId }: { userId: string }) {
                     </FormItem>
                   );
                 }}
+              />
+              <FormField
+                control={form.control}
+                name="scientific_name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Scientific Name</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Cavia porcellus" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
               />
               <FormField
                 control={form.control}
@@ -234,7 +272,7 @@ export default function AddSpeciesDialog({ userId }: { userId: string }) {
               />
               <div className="flex">
                 <Button type="submit" className="ml-1 mr-1 flex-auto">
-                  Add Species
+                  {action === "add" ? "Add Species" : "Update Species"}
                 </Button>
                 <Button
                   type="button"
