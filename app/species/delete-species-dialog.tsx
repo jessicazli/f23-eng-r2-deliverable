@@ -58,7 +58,7 @@ export default function DeleteSpeciesDialog({ species }: { species: Species }) {
 
     setOpen(false);
 
-    // page should refresh and reflect deletion but as stated above, deletion is not occurring
+    // page should refresh and reflect deletion but as stated above, deletion is not working
     router.refresh();
   };
 
